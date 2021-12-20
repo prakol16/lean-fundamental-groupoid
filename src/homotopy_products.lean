@@ -1,7 +1,7 @@
 import topology.homotopy.basic
 
 -- For some reason, projections are not solved by `continuity`
-theorem pi_continuity_reverse {α : Type*} {ι : Type*} {π : ι → Type*}
+lemma pi_continuity_reverse {α : Type*} {ι : Type*} {π : ι → Type*}
           [topological_space α] [∀ i : ι, topological_space (π i)]
           (f : α → Π i, π i) (i : ι) {fc : continuous f} 
           : continuous (λ x, f x i)

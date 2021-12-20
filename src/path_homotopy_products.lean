@@ -267,14 +267,11 @@ begin
   apply @quotient.induction_on _ _
     (λ (a : path.homotopic.quotient as bs), path_prod.quotient (λ i, path_proj.quotient i a) = a),
   intro a,
-  have : (λ i, path_proj.quotient i ⟦a⟧) = λ i, ⟦path_proj i a⟧ :=
-  by { ext i, exact path_proj.quotient_rec i a, },
-  rw this,
+  simp_rw path_proj.quotient_rec,
   rw path_prod.quotient_rec,
-  simp, 
+  simp,
 end
 end inverses
-
 end outer
 end homotopy.product
 
