@@ -1,4 +1,4 @@
 *.olean
 /_target
 /leanpkg.path
-./src/misc_test/*
+src/misc_test/*
