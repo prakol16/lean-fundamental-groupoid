@@ -8,7 +8,7 @@ import data.quot
 
 noncomputable theory
 
-namespace homotopy
+namespace path.homotopic
 
 
 section
@@ -28,9 +28,9 @@ lemma hcomp.quotient_lift (a : path x y)
                           : ⟦a.trans b⟧ = hcomp.quotient ⟦a⟧ ⟦b⟧
                           := rfl
 end
-end homotopy
+end path.homotopic
 
-namespace homotopy.product
+namespace path.homotopic
 section outer
 local attribute [instance] path.homotopic.setoid
 parameters {I : Type*} {X : I → Top}
@@ -116,7 +116,7 @@ end
 
 
 
-local notation p₁ ` ⬝ ` p₂ := homotopy.hcomp.quotient p₁ p₂
+local notation p₁ ` ⬝ ` p₂ := path.homotopic.hcomp.quotient p₁ p₂
 
 lemma hompath_trans_commutes_with_product
       (paths₀ : Π i, path.homotopic.quotient (as i) (bs i))
@@ -135,7 +135,7 @@ begin
   
   rw [ha', hb'],
   simp only [path_prod.quotient_rec],
-  rw [← homotopy.hcomp.quotient_lift,
+  rw [← path.homotopic.hcomp.quotient_lift,
       path_trans_commutes_with_product,
       ← path_prod.quotient_rec],
   refl,
@@ -159,11 +159,10 @@ end prod_id
 section projection_descends_to_homotopy
 parameters {as bs : Π i, X i}
 
-def path_proj (i : I) (p : path as bs) : path (as i) (bs i) := {
-  to_fun := continuous_map.projection i p.to_continuous_map,
+def path_proj (i : I) (p : path as bs) : path (as i) (bs i) :=
+{ to_fun := continuous_map.projection i p.to_continuous_map,
   source' := by simp,
-  target' := by simp,
-}
+  target' := by simp, }
 
 def proj_homotopy (i : I) (path₀ path₁ : path as bs)
            (homotopies : path.homotopy path₀ path₁)
@@ -204,7 +203,7 @@ begin
 end
 
 
-local notation p₁ ` ⬝ ` p₂ := homotopy.hcomp.quotient p₁ p₂
+local notation p₁ ` ⬝ ` p₂ := path.homotopic.hcomp.quotient p₁ p₂
 
 lemma homproj_commutes_with_comp (i : I)
       : ∀ (p₀ : path.homotopic.quotient as bs) (p₁ : path.homotopic.quotient bs cs), path_proj.quotient i (p₀ ⬝ p₁) = ((path_proj.quotient i p₀) ⬝ (path_proj.quotient i p₁))
@@ -214,9 +213,9 @@ begin
   apply @quotient.induction_on₂ _ _ _ _ (λ p₀ p₁, path_proj.quotient i (p₀ ⬝ p₁) = ((path_proj.quotient i p₀) ⬝ (path_proj.quotient i p₁))),
   intros p₀_lift p₁_lift,
   rw [
-    ← homotopy.hcomp.quotient_lift,
+    ← path.homotopic.hcomp.quotient_lift,
     path_proj.quotient_rec, path_proj.quotient_rec, path_proj.quotient_rec,
-    ← homotopy.hcomp.quotient_lift,
+    ← path.homotopic.hcomp.quotient_lift,
     proj_commutes_with_comp
   ],
 end
@@ -273,5 +272,5 @@ begin
 end
 end inverses
 end outer
-end homotopy.product
+end path.homotopic
 

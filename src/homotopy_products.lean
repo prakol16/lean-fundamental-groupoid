@@ -20,8 +20,8 @@ def product (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
   continuous_to_fun := by continuity, }
 
 @[simp]
-lemma product_eval (f : Π i, C(A, X i)) (a : A) 
-  : (product f) a  = λ i : I, (f i) a := rfl
+lemma product_eval (f : Π i, C(A, X i)) (a : A)  :
+  (product f) a  = λ i : I, (f i) a := rfl
 
 
 
@@ -31,8 +31,8 @@ def projection (i : I) (f : C(A, Π i, X i)) : C(A, X i) :=
   { apply pi_continuity_reverse, exact f.continuous_to_fun, }, }
 
 @[simp]
-lemma projection_eval (i : I) (f : C(A, Π i, X i)) (a : A)
-  : (projection i f) a = f a i := rfl
+lemma projection_eval (i : I) (f : C(A, Π i, X i)) (a : A) :
+  (projection i f) a = f a i := rfl
 
 namespace homotopy
 section
@@ -40,8 +40,7 @@ noncomputable def product_homotopy
   (f g : Π i, C(A, X i)) (S : set A)
   (homotopies : Π i : I, continuous_map.homotopy_rel (f i) (g i) S)
   : continuous_map.homotopy_rel (product f) (product g) S :=
-{
-  to_fun := λ t i, (homotopies i).to_fun t,
+{ to_fun := λ t i, (homotopies i).to_fun t,
   continuous_to_fun := by continuity,
   to_fun_zero := by { 
     intro t, ext i, simpa only [(homotopies i).to_fun_zero], },
@@ -60,17 +59,15 @@ noncomputable def product_homotopy
       ext i;
       have := this i;
       tauto,
-  end,
-}
+  end, }
 
 noncomputable def proj_homotopy
   (i : I) (f g : C(A, Π i, X i))
   (S : set A)
-  (homotopies : continuous_map.homotopy_rel f g S)
-  : continuous_map.homotopy_rel (projection i f) (projection i g) S
-        :=
-{
-  to_fun := λ ts, (homotopies ts i),
+  (homotopies : continuous_map.homotopy_rel f g S) :
+  continuous_map.homotopy_rel (projection i f) (projection i g) S
+  :=
+{ to_fun := λ ts, (homotopies ts i),
   continuous_to_fun := by { apply pi_continuity_reverse, exact homotopies.continuous_to_fun, },
   to_fun_zero := 
   begin
@@ -93,8 +90,7 @@ noncomputable def proj_homotopy
     have := homotopies.prop' t s x,
     change homotopies (t, s) = f s ∧ homotopies (t, s) = g s at this,
     tauto,
-  end
-}
+  end }
 end
 end homotopy
 end

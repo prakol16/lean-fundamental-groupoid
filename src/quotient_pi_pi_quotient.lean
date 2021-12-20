@@ -27,26 +27,22 @@ def f_quot : quotient_pi → pi_quotient := quotient.lift f f_preserves_rel
 lemma f_equiv : function.bijective f_quot :=
 begin
   split,
-  {
-    intros x y hxy,
+  { intros x y hxy,
     cases quotient.exists_rep x with x' hx',
     cases quotient.exists_rep y with y' hy',
     subst hx', subst hy',
     change f x' = f y' at hxy,
     rw quotient.eq, intro i, rw ← quotient.eq,
     have : f x' i = f y' i := by rw hxy,
-    exact this,
-  },
-  {
-    intro x,
+    exact this, },
+  { intro x,
     have : ∀ i : I, ∃ x' : α i, ⟦x'⟧ = x i := by { intro i, exact quotient.exists_rep _, },
     rw classical.skolem at this,
     cases this with y hy,
     use ⟦y⟧,
     ext i,
     change ⟦y i⟧ = x i,
-    exact hy i,
-  }
+    exact hy i, }
 end
 
 def f_equiv' : quotient_pi ≃ pi_quotient
