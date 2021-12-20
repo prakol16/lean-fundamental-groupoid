@@ -10,6 +10,22 @@ import path_homotopy_products
 
 noncomputable theory
 
+/-
+ - Given a family of topological spaces `X` indexed by `I`,
+   we show that π (Πᵢ Xᵢ) = Πᵢ (π Xᵢ)
+ - This isomorphism is given by two homomorphisms (note that
+    homomorphisms between groupoids are functors):
+    - `pi_prod_X_to_prod_pi_X` which is a map π (Πᵢ Xᵢ) ⥤ Πᵢ (π Xᵢ)
+    - `prod_pi_X_to_pi_prod_X` which is a map Πᵢ (π Xᵢ) ⥤ π (Πᵢ Xᵢ)
+ - We prove the theorems `iso₁` and `iso₂` which show that these
+   really are inverses of each others.
+ - TODO: It should also be straightforward to show that
+         pi_prod_X_to_prod_pi_X preserves projections
+         i.e. a projection projᵢ = Πᵢ Xᵢ → Xᵢ
+         maps under π to the corresponding ith projection
+         Πᵢ πXᵢ → πXᵢ. This should be mostly just 
+         unrolling definitions and using `simp`
+ -/
 
 section
 abbreviation π := fundamental_groupoid.fundamental_groupoid_functor

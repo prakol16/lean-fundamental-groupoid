@@ -1,5 +1,15 @@
 import topology.homotopy.basic
 
+/-
+ - Here, we define the product and projections of homotopies
+ - `product` gives the product of continuous functions,
+      as a continuous function
+ - `projection` gives the projection of a continuous function,
+      as a continuous function
+ - `product_homotopy` and `proj_homotopy` show that `product`
+    and `projection` take homotopic maps to homotopic maps.
+-/
+
 -- For some reason, projections are not solved by `continuity`
 lemma pi_continuity_reverse {α : Type*} {ι : Type*} {π : ι → Type*}
           [topological_space α] [∀ i : ι, topological_space (π i)]

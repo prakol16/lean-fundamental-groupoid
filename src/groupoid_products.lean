@@ -3,6 +3,10 @@ import category_theory.products.basic
 import category_theory.functor
 import category_theory.pi.basic
 
+/-
+ - Here we show that the product of groupoids has a groupoid
+ - structure, which is an extension of the product category structure
+-/
 section
 universe u
 parameters {I : Type u} {J : I → Type u} 
