@@ -8,6 +8,9 @@ import data.quot
 
 noncomputable theory
 
+def to_bundled {α β : Type*} [topological_space α] [topological_space β]
+               {f : α → β} (cf : continuous f) : C(α, β) := {to_fun := f}
+
 namespace path.homotopic
 
 
@@ -143,7 +146,6 @@ end
 end prod_comm_comp
 
 
-section prod_id
 lemma id_product_is_id (xs : Π i, X i) 
   : path_prod (λ i : I, path.refl (xs i)) = path.refl xs
   := rfl
@@ -153,23 +155,18 @@ lemma id_product_is_id.quotient (xs : Π i, X i)
   := by rw [path_prod.quotient_rec, id_product_is_id]
 
 
-end prod_id
-
-
 section projection_descends_to_homotopy
 parameters {as bs : Π i, X i}
 
 def path_proj (i : I) (p : path as bs) : path (as i) (bs i) :=
-{ to_fun := continuous_map.projection i p.to_continuous_map,
+{ to_fun := p.map (continuous_apply i),
   source' := by simp,
   target' := by simp, }
 
 def proj_homotopy (i : I) (path₀ path₁ : path as bs)
            (homotopies : path.homotopy path₀ path₁)
         : path.homotopy (path_proj i path₀) (path_proj i path₁)
-        := continuous_map.homotopy.proj_homotopy i 
-        path₀.to_continuous_map path₁.to_continuous_map {0, 1} homotopies
-
+        := homotopies.map (to_bundled (continuous_apply i))
 
 
 section

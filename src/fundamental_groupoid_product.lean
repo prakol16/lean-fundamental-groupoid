@@ -27,35 +27,51 @@ noncomputable theory
          unrolling definitions and using `simp`
  -/
 
+namespace category_theory.functor
 section
+open category_theory
+
+universes w v u
+
+@[simps]
+def pi' {I : Type w} {X : I → Type u} [∀i : I, category.{v} (X i)]
+        {A : Type u} [category.{v} A] (f : Π i, A ⥤ X i) :
+        A ⥤ Π i, X i := 
+{ obj := λ a i, (f i).obj a,
+  map := λ a₁ a₂ h i, (f i).map h, }
+
+@[simps]
+def diag {I : Type w} {A : Type u} [category.{v} A] : A ⥤ (Π i : I, A) := pi' (λ i, 𝟭 A)
+
+lemma pi'_diag_pi 
+        {I : Type w} {X : I → Type u} [∀i : I, category.{v} (X i)]
+        {A : Type u} [category.{v} A] {f : Π i, A ⥤ X i} :
+        pi' f = diag ⋙ functor.pi f := by obviously
+
+end
+end category_theory.functor
+
+
+section
+universe u
 abbreviation π := fundamental_groupoid.fundamental_groupoid_functor
 
-parameters {I : Type*} (X : I → Top)
+parameters {I : Type u} (X : I → Top.{u})
+
+def pi_prod_X_to_prod_pi_X_i (i : I) : (π.obj (Top.of (Π i, X i))).α 
+  ⥤ (π.obj (X i)).α :=
+  π.map (to_bundled (continuous_apply i))
 
 
 def pi_prod_X_to_prod_pi_X : (π.obj (Top.of (Π i, X i))).α 
-  ⥤ Π i, (π.obj (X i)).α :=
-{ obj := λ g, g,
-  map := λ v₁ v₂ p, λ i, path.homotopic.path_proj.quotient i p,
-  map_id' := by { intro x, ext i, exact path.homotopic.proj_id_is_id.quotient i x, },
-  map_comp' :=
-  begin
-    intros x y z f g,
-    ext i,
-    exact path.homotopic.homproj_commutes_with_comp i f g,
-  end }
-
+  ⥤ Π i, (π.obj (X i)).α := (category_theory.functor.pi' pi_prod_X_to_prod_pi_X_i)
 
 def prod_pi_X_to_pi_prod_X : (Π i : I, (π.obj (X i)).α)
         ⥤ (π.obj (Top.of (Π i, X i))).α := 
 { obj := λ g, g,
   map := λ v₁ v₂ p, path.homotopic.path_prod.quotient p,
   map_id' := path.homotopic.id_product_is_id.quotient,
-  map_comp' :=
-  begin
-    intros x y z f g,
-    exact (path.homotopic.hompath_trans_commutes_with_product f g).symm,
-  end }
+  map_comp' := λ x y z f g, (path.homotopic.hompath_trans_commutes_with_product f g).symm }
 
 @[simp]
 lemma def_pi_prod_X_to_prod_pi_X {x y : (π.obj (Top.of (Π i, X i))).α} {f : x ⟶ y} 
@@ -65,18 +81,27 @@ lemma def_pi_prod_X_to_prod_pi_X {x y : (π.obj (Top.of (Π i, X i))).α} {f : x
 lemma def_prod_pi_X_to_pi_prod_X {x y : Π i : I, (π.obj (X i)).α}
            {f : x ⟶ y} : prod_pi_X_to_pi_prod_X.map f = path.homotopic.path_prod.quotient f := rfl 
 
-lemma iso₁ : pi_prod_X_to_prod_pi_X ⋙ prod_pi_X_to_pi_prod_X = 𝟭 _ :=
+theorem iso₁ : pi_prod_X_to_prod_pi_X ⋙ prod_pi_X_to_pi_prod_X = 𝟭 _ :=
 begin
   apply category_theory.functor.ext; intros,
   { simp, }, { refl, },
 end
 
-lemma iso₂ : prod_pi_X_to_pi_prod_X ⋙ pi_prod_X_to_prod_pi_X = 𝟭 _ :=
+theorem iso₂ : prod_pi_X_to_pi_prod_X ⋙ pi_prod_X_to_prod_pi_X = 𝟭 _ :=
 begin
   apply category_theory.functor.ext; intros,
   { simp, }, { refl, },
 end
 
+section
+parameter (i : I)
 
+def proj_i : C(Top.of (Π i, X i), X i) := 
+  to_bundled (continuous_apply i) 
+
+def proj_i' : (Π i : I, (π.obj (X i)).α) ⥤ (π.obj (X i)).α :=
+  category_theory.pi.eval _ i
+
+theorem preserves_products : π.map proj_i = pi_prod_X_to_prod_pi_X ⋙ proj_i' := by obviously
 end
-
+end
