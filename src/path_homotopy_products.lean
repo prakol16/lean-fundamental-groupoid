@@ -107,16 +107,9 @@ lemma hompath_trans_commutes_with_product
     : ((path_prod.quotient paths₀) ⬝ (path_prod.quotient paths₁))
       = (path_prod.quotient (λ i, (paths₀ i) ⬝ (paths₁ i))) :=
 begin
-  have path₀_rep := (λ i : I, quotient.exists_rep (paths₀ i)),
-  have path₁_rep := λ i : I, quotient.exists_rep (paths₁ i),
-  rw classical.skolem at path₀_rep,
-  rw classical.skolem at path₁_rep,
-  cases path₀_rep with a ha,
-  cases path₁_rep with b hb,
-  have ha' : paths₀ = λ i, ⟦a i⟧ := by { ext i, exact (ha i).symm, },
-  have hb' : paths₁ = λ i, ⟦b i⟧ := by { ext i, exact (hb i).symm, },
-  
-  rw [ha', hb'],
+  apply quotient.induction_pi paths₁,
+  apply quotient.induction_pi paths₀,
+  intros path₀_rep path₁_rep,
   simp only [path_prod.quotient_rec],
   rw [← path.homotopic.hcomp.quotient_lift,
       path_trans_commutes_with_product,
@@ -224,11 +217,8 @@ lemma proj_prod.quotient (i : I)
   : path_proj.quotient i (path_prod.quotient paths) = paths i
   :=
 begin
-  have rep := λ i : I, quotient.exists_rep (paths i),
-  rw classical.skolem at rep,
-  cases rep with a ha,
-  have ha' : paths = λ i, ⟦a i⟧ := by { ext i, exact (ha i).symm, },
-  rw ha',
+  apply quotient.induction_pi paths,
+  intro rep,
   rw path_prod.quotient_rec, rw path_proj.quotient_rec,
   simp,
 end
@@ -241,8 +231,7 @@ lemma prod_proj (p : path as bs)
 lemma prod_proj.quotient (p : path.homotopic.quotient as bs)
   : path_prod.quotient (λ i, path_proj.quotient i p) = p :=
 begin
-  apply @quotient.induction_on _ _
-    (λ (a : path.homotopic.quotient as bs), path_prod.quotient (λ i, path_proj.quotient i a) = a),
+  apply quotient.induction_on p,
   intro a,
   simp_rw path_proj.quotient_rec,
   rw path_prod.quotient_rec,
@@ -251,4 +240,3 @@ end
 end inverses
 end outer
 end path.homotopic
-

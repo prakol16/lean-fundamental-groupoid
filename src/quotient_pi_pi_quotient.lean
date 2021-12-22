@@ -4,6 +4,20 @@ import tactic.interactive
 import tactic.ext
 
 noncomputable theory
+namespace quotient
+variables {I : Type*} {α : I → Sort*} [s : ∀ i, setoid (α i)]
+lemma induction_pi {φ : (Π i : I, quotient (s i)) → Prop} (q : Π i : I, quotient (s i))
+      (hi : ∀ a : Π i : I, α i, φ (λ i, ⟦a i⟧)) : φ q :=
+begin
+  have q_lift := λi : I, quotient.exists_rep (q i),
+  rw classical.skolem at q_lift,
+  cases q_lift with f hf,
+  have q_lift_eq_f : (λ i : I, ⟦f i⟧) = q := by { ext i, exact (hf i), },
+  rw ← q_lift_eq_f,
+  exact hi f,
+end
+end quotient
+
 namespace pi_quotient
 
 section
@@ -27,22 +41,18 @@ def f_quot : quotient_pi → pi_quotient := quotient.lift f f_preserves_rel
 lemma f_equiv : function.bijective f_quot :=
 begin
   split,
-  { intros x y hxy,
-    cases quotient.exists_rep x with x' hx',
-    cases quotient.exists_rep y with y' hy',
-    subst hx', subst hy',
+  { intros x y,
+    apply quotient.induction_on₂ x y,
+    intros x' y' hxy,
     change f x' = f y' at hxy,
     rw quotient.eq, intro i, rw ← quotient.eq,
     have : f x' i = f y' i := by rw hxy,
     exact this, },
   { intro x,
-    have : ∀ i : I, ∃ x' : α i, ⟦x'⟧ = x i := by { intro i, exact quotient.exists_rep _, },
-    rw classical.skolem at this,
-    cases this with y hy,
-    use ⟦y⟧,
-    ext i,
-    change ⟦y i⟧ = x i,
-    exact hy i, }
+    apply quotient.induction_pi x,
+    intro x',
+    use ⟦x'⟧,
+    refl, }
 end
 
 def f_equiv' : quotient_pi ≃ pi_quotient

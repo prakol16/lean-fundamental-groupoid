@@ -37,7 +37,7 @@ lemma prod_preserves_homotopic : ((≈) ⇒ (≈) ⇒ (≈)) (@prod _ _ a₁ a�
 
 def prod.quotient (q₁ q₂) :
                   path.homotopic.quotient (a₁, b₁) (a₂, b₂) := 
-               (quotient.map₂ prod prod_preserves_homotopic) q₁ q₂
+                  (quotient.map₂ prod prod_preserves_homotopic) q₁ q₂
 
 lemma prod.quotient_rec : prod.quotient ⟦p₁⟧ ⟦p₂⟧ = ⟦prod p₁ p₂⟧ := rfl
 
@@ -142,4 +142,31 @@ end
 
 
 end proj
+
+section inverses
+variables (p₁ : path a₁ a₂) (p₂ : path b₁ b₂)
+          (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂)
+
+@[simp]
+lemma proj_left_prod : proj.left (prod p₁ p₂) = p₁ := by { ext, refl, }
+@[simp]
+lemma proj_right_prod : proj.right (prod p₁ p₂) = p₂ := by { ext, refl, }
+
+@[simp]
+lemma proj_left_prod.quotient : proj.left.quotient (prod.quotient q₁ q₂) = q₁ :=
+begin
+  apply quotient.induction_on₂ q₁ q₂,
+  intros p₁ p₂,
+  simp only [prod.quotient_rec, proj_left_quotient_rec, proj_left_prod],
+end
+
+@[simp]
+lemma proj_right_prod.quotient : proj.right.quotient (prod.quotient q₁ q₂) = q₂ :=
+begin
+  apply quotient.induction_on₂ q₁ q₂,
+  intros p₁ p₂,
+  simp only [prod.quotient_rec, proj_right_quotient_rec, proj_right_prod],
+end
+
+end inverses
 end path.homotopic
