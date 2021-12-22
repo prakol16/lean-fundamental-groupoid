@@ -63,7 +63,14 @@ begin
   apply quotient.induction_on₂ q₁ q₂,
   intros p₁ p₂ r₁ r₂,
   simp only [prod.quotient_rec, ← hcomp.quotient_lift, path_trans_comm_prod],
-end 
+end
+
+#check path.refl a₁
+lemma id_prod (a₁ : α) (b₁ : β) : prod (path.refl a₁) (path.refl b₁) = path.refl (a₁, b₁) := rfl
+lemma id_prod.quotient (a₁ : α) (b₁ : β) : prod.quotient ⟦path.refl a₁⟧ ⟦path.refl b₁⟧ = ⟦path.refl (a₁, b₁)⟧ :=
+begin
+  rw prod.quotient_rec, refl,
+end
 
 end prod
 

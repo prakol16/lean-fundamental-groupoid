@@ -7,6 +7,7 @@ import topology.constructions
 import category_theory.functor
 import groupoid_products
 import path_homotopy_products
+import path_homotopy_binary_products
 
 noncomputable theory
 
@@ -19,12 +20,6 @@ noncomputable theory
     - `prod_pi_X_to_pi_prod_X` which is a map Πᵢ (π Xᵢ) ⥤ π (Πᵢ Xᵢ)
  - We prove the theorems `iso₁` and `iso₂` which show that these
    really are inverses of each others.
- - TODO: It should also be straightforward to show that
-         pi_prod_X_to_prod_pi_X preserves projections
-         i.e. a projection projᵢ = Πᵢ Xᵢ → Xᵢ
-         maps under π to the corresponding ith projection
-         Πᵢ πXᵢ → πXᵢ. This should be mostly just 
-         unrolling definitions and using `simp`
  -/
 
 namespace category_theory.functor
@@ -49,6 +44,21 @@ lemma pi'_diag_pi
         pi' f = diag ⋙ functor.pi f := by obviously
 
 end
+section
+open category_theory
+universes u₁ u₂ u₃ v₁ v₂ v₃
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₂} [category.{v₂} B]
+          {C : Type u₃} [category.{v₃} C]
+
+@[simps]
+def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ B × C := 
+{ obj := λ a, (F.obj a, G.obj a),
+  map := λ x y f, (F.map f, G.map f),
+  }
+
+end
+
 end category_theory.functor
 
 
@@ -104,4 +114,28 @@ def proj_i' : (Π i : I, (π.obj (X i)).α) ⥤ (π.obj (X i)).α :=
 
 theorem preserves_products : π.map proj_i = pi_prod_X_to_prod_pi_X ⋙ proj_i' := by obviously
 end
+
+section
+parameters {α β : Top.{u}}
+
+def pi_proj_left : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α :=
+  π.map (⟨_, continuous_fst⟩)
+
+def pi_proj_right : (π.obj (Top.of (α × β))).α ⥤ (π.obj β).α :=
+  π.map (⟨_, continuous_snd⟩)
+
+def pi_proj : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α × (π.obj β).α :=
+  pi_proj_left.prod' pi_proj_right
+
+
+def prod_to_pi : (π.obj α).α × (π.obj β).α ⥤ (π.obj (Top.of (α × β))).α :=
+{ obj := λ p, (p.1, p.2), -- No idea why this works and λ p, p does not
+  map := λ X Y (p : X ⟶ Y), path.homotopic.prod.quotient p.1 p.2,
+  map_id' := λ x, path.homotopic.id_prod.quotient x.1 x.2,
+  map_comp' := λ x y z f g, path.homotopic.hcomp_comm_prod f.1 f.2 g.1 g.2 }
+
+
+
+end
+
 end

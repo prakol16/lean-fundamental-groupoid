@@ -6,13 +6,15 @@ import tactic.ext
 noncomputable theory
 namespace quotient
 variables {I : Type*} {α : I → Sort*} [s : ∀ i, setoid (α i)]
+
+attribute [elab_as_eliminator]
 lemma induction_pi {φ : (Π i : I, quotient (s i)) → Prop} (q : Π i : I, quotient (s i))
       (hi : ∀ a : Π i : I, α i, φ (λ i, ⟦a i⟧)) : φ q :=
 begin
   have q_lift := λi : I, quotient.exists_rep (q i),
   rw classical.skolem at q_lift,
   cases q_lift with f hf,
-  have q_lift_eq_f : (λ i : I, ⟦f i⟧) = q := by { ext i, exact (hf i), },
+  have q_lift_eq_f : (λ i : I, ⟦f i⟧) = q := by { ext, apply hf, },
   rw ← q_lift_eq_f,
   exact hi f,
 end
@@ -44,10 +46,8 @@ begin
   { intros x y,
     apply quotient.induction_on₂ x y,
     intros x' y' hxy,
-    change f x' = f y' at hxy,
     rw quotient.eq, intro i, rw ← quotient.eq,
-    have : f x' i = f y' i := by rw hxy,
-    exact this, },
+    exact function.funext_iff.mp hxy i, },
   { intro x,
     apply quotient.induction_pi x,
     intro x',
