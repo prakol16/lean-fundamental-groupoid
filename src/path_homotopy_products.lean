@@ -5,33 +5,13 @@ import topology.path_connected
 import quotient_pi_pi_quotient
 import homotopy_products
 import data.quot
+import hcomp
 
 noncomputable theory
 
 def to_bundled {α β : Type*} [topological_space α] [topological_space β]
                {f : α → β} (cf : continuous f) : C(α, β) := {to_fun := f}
 
-namespace path.homotopic
-
-
-section
-parameters {A : Type*} [topological_space A] {x y z : A}
-local attribute [instance] path.homotopic.setoid
-
-
-def hcomp.quotient : path.homotopic.quotient x y
-                   → path.homotopic.quotient y z
-                   → path.homotopic.quotient x z
-  := quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq)
-
-
-lemma hcomp.quotient_lift (a : path x y)
-                          (b : path y z)
-                          : ⟦a.trans b⟧ = hcomp.quotient ⟦a⟧ ⟦b⟧
-                          := rfl
-end
-end path.homotopic
 
 namespace path.homotopic
 section outer
@@ -43,7 +23,7 @@ parameters {as bs : Π i, X i}
 
 def path_prod (paths : Π i, path (as i) (bs i)) : path as bs := 
 {
-  to_continuous_map := continuous_map.product (λ i, (paths i).to_continuous_map),
+  to_continuous_map := continuous_map.pi (λ i, (paths i).to_continuous_map),
   source' := by simp,
   target' := by simp,
 }
@@ -111,10 +91,10 @@ lemma path_trans_commutes_with_product
 begin
   ext t i,
   change ((path_prod paths₀) ⬝ (path_prod paths₁)) t i = (paths₀ i ⬝ paths₁ i) t,
-  change ((path_prod paths₀) ⬝ (path_prod paths₁)) t with if (t : ℝ) ≤ 1/2 then _ else _,
-  change (paths₀ i ⬝ paths₁ i) t with if (t : ℝ) ≤ 1/2 then _ else _,
+  unfold path.trans,
+  simp only [path.coe_mk, function.comp_app],
   split_ifs;
-    finish,
+    refl,
 end
 
 
@@ -172,7 +152,7 @@ def proj_homotopy (i : I) (path₀ path₁ : path as bs)
 section
 
 lemma path_proj_preserves_homotopic (i : I) : ((≈) ⇒ (≈)) (path_proj i) (path_proj i)
-  := λ x y hxy, nonempty.map (proj_homotopy i x y) hxy
+  := λ x y, nonempty.map (proj_homotopy i x y)
 
 def path_proj.quotient (i : I)
   : path.homotopic.quotient as bs → path.homotopic.quotient (as i) (bs i)
@@ -193,21 +173,22 @@ lemma proj_commutes_with_comp (i : I)
       :=
 begin
   ext t,
-  change (p₀ ⬝ p₁) t i = ((path_proj i p₀) ⬝ (path_proj i p₁)) t,
-  change ((path_proj i p₀) ⬝ (path_proj i p₁)) t with if (t : ℝ) ≤ 1/2 then _ else _,
-  change (p₀ ⬝ p₁) t with if (t : ℝ) ≤ 1/2 then _ else _,
-  split_ifs; finish,
+  change (p₀ ⬝ p₁) t i = _,
+  unfold path.trans,
+  simp only [path.coe_mk, function.comp_app],
+  split_ifs;
+    refl,
 end
 
 
 local notation p₁ ` ⬝ ` p₂ := path.homotopic.hcomp.quotient p₁ p₂
 
-lemma homproj_commutes_with_comp (i : I)
-      : ∀ (p₀ : path.homotopic.quotient as bs) (p₁ : path.homotopic.quotient bs cs), path_proj.quotient i (p₀ ⬝ p₁) = ((path_proj.quotient i p₀) ⬝ (path_proj.quotient i p₁))
+lemma homproj_commutes_with_comp (i : I) {p₀ : path.homotopic.quotient as bs} {p₁ : path.homotopic.quotient bs cs}
+      : path_proj.quotient i (p₀ ⬝ p₁) = ((path_proj.quotient i p₀) ⬝ (path_proj.quotient i p₁))
       :=
 begin
   intros,
-  apply @quotient.induction_on₂ _ _ _ _ (λ p₀ p₁, path_proj.quotient i (p₀ ⬝ p₁) = ((path_proj.quotient i p₀) ⬝ (path_proj.quotient i p₁))),
+  apply quotient.induction_on₂ p₀ p₁,
   intros p₀_lift p₁_lift,
   rw [
     ← path.homotopic.hcomp.quotient_lift,
@@ -234,11 +215,11 @@ section inverses
 parameters {as bs : Π i, X i}
 
 @[simp]
-lemma proj_prod {i : I} (paths : Π i, path (as i) (bs i))
+lemma proj_prod (i : I) (paths : Π i, path (as i) (bs i))
   : path_proj i (path_prod paths) = paths i := by { ext, refl, }
 
 @[simp]
-lemma proj_prod.quotient {i : I}
+lemma proj_prod.quotient (i : I)
   (paths : Π i, path.homotopic.quotient (as i) (bs i))
   : path_proj.quotient i (path_prod.quotient paths) = paths i
   :=
