@@ -72,7 +72,6 @@ def pi_prod_X_to_prod_pi_X_i (i : I) : (π.obj (Top.of (Π i, X i))).α
   ⥤ (π.obj (X i)).α :=
   π.map (to_bundled (continuous_apply i))
 
-
 def pi_prod_X_to_prod_pi_X : (π.obj (Top.of (Π i, X i))).α 
   ⥤ Π i, (π.obj (X i)).α := (category_theory.functor.pi' pi_prod_X_to_prod_pi_X_i)
 
@@ -104,18 +103,6 @@ begin
 end
 
 section
-parameter (i : I)
-
-def proj_i : C(Top.of (Π i, X i), X i) := 
-  to_bundled (continuous_apply i) 
-
-def proj_i' : (Π i : I, (π.obj (X i)).α) ⥤ (π.obj (X i)).α :=
-  category_theory.pi.eval _ i
-
-theorem preserves_products : π.map proj_i = pi_prod_X_to_prod_pi_X ⋙ proj_i' := by obviously
-end
-
-section
 parameters {α β : Top.{u}}
 
 def pi_proj_left : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α :=
@@ -127,14 +114,52 @@ def pi_proj_right : (π.obj (Top.of (α × β))).α ⥤ (π.obj β).α :=
 def pi_proj : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α × (π.obj β).α :=
   pi_proj_left.prod' pi_proj_right
 
-
+@[simps]
 def prod_to_pi : (π.obj α).α × (π.obj β).α ⥤ (π.obj (Top.of (α × β))).α :=
-{ obj := λ p, (p.1, p.2), -- No idea why this works and λ p, p does not
+{ obj := λ p, p,
   map := λ X Y (p : X ⟶ Y), path.homotopic.prod.quotient p.1 p.2,
   map_id' := λ x, path.homotopic.id_prod.quotient x.1 x.2,
   map_comp' := λ x y z f g, path.homotopic.hcomp_comm_prod f.1 f.2 g.1 g.2 }
 
+section test
+variables {x y : (π.obj (Top.of (α × β))).α} (f : x ⟶ y)
+@[simp] lemma def_pi_proj_left  :
+  pi_proj_left.map f = path.homotopic.proj.left.quotient f := rfl
 
+@[simp] lemma def_pi_proj_right :
+  pi_proj_right.map f = path.homotopic.proj.right.quotient f := rfl
+
+@[simp] lemma def_pi_proj_to_left :
+  (pi_proj.map f).1 = pi_proj_left.map f := rfl
+
+@[simp] lemma def_pi_proj_to_right :
+  (pi_proj.map f).2 = pi_proj_right.map f := rfl
+
+@[simp] lemma def_pi_proj_obj : pi_proj.obj x = x := by { ext; refl, }
+
+end test
+
+theorem iso₃ : pi_proj ⋙ prod_to_pi = 𝟭 _ :=
+begin
+  apply category_theory.functor.hext, { simp, },
+  intros x y f,
+  simp only [category_theory.functor.id_map,
+    def_pi_proj_left,
+    def_pi_proj_to_left,
+    category_theory.functor.comp_map,
+    def_pi_proj_to_right,
+    prod_to_pi_map,
+    def_pi_proj_right],
+  convert heq_iff_eq.mpr (path.homotopic.prod_proj.quotient' f);
+   simp,
+end
+
+theorem iso₄ : prod_to_pi ⋙ pi_proj = 𝟭 _ :=
+begin
+  apply category_theory.functor.hext, { simp, },
+  intros x y f,
+  simp [prod.ext_iff],
+end
 
 end
 
