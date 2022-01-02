@@ -131,70 +131,13 @@ def F_star' : (π.obj (Top.of I)).α × (π.obj X).α ⥤ (π.obj Y).α := prod_
 instance : has_zero ((π.obj (Top.of I)).α) := { zero := (0 : I) }
 instance : has_one ((π.obj (Top.of I)).α) := { one := (1 : I) }
 
-section test
-parameters {a b : (π.obj (Top.of I)).α} {c d : (π.obj X).α}
-            (e : a ⟶ b) (h : c ⟶ d)
-
-def a' : I := a
-def  b' : I := b
-def c' : X := c
-def d' : X := d
-def e' : path.homotopic.quotient a b := e
-def h' : path.homotopic.quotient c d := h
-
-#check F_star.map (@path.homotopic.prod.quotient _ _ (a, c) (b, d) e h)
-#check (π.map F.to_continuous_map : (π.obj (Top.of (I × X))).α ⥤ (π.obj Y).α)
-#check map_fn (@path.homotopic.prod.quotient _ _ (a, c) (b, d) e h) F.to_continuous_map
-
-def F_star_def : F_star'.map ((e, h) : (a, c) ⟶ (b, d)) 
-  = map_fn (@path.homotopic.prod.quotient _ _ (a, c) (b, d) e h) F.to_continuous_map := rfl
-
-#check 𝟙 (0 : (π.obj (Top.of I)).α)
-#check 𝟙 (0 : (π.obj (Top.of I)).α)
-#check ((𝟙 (0 : (π.obj (Top.of I)).α), h) : ((0 : (π.obj (Top.of I)).α), c) ⟶ ((0 : (π.obj (Top.of I)).α), d))
-#check ((0 : (π.obj (Top.of I)).α), c) ⟶ ((0 : (π.obj (Top.of I)).α), d)
-#check F_star'.map ((𝟙 (0 : (π.obj (Top.of I)).α), h) : ((0 : (π.obj (Top.of I)).α), c) ⟶ ((0 : (π.obj (Top.of I)).α), d))
-#check map_fn (@path.homotopic.prod.quotient (Top.of I) X ((0 : I), c) (0, d) ⟦path.refl 0⟧ h) (F.to_continuous_map : C(I × X, Y))
-#check @map_fn (I × X) Y _ _ (0, c) (0, d) 
-
--- #check F_star'.map ((𝟙 (0 : (π.obj (Top.of I)).α), h) : (𝟙 (0 : (π.obj (Top.of I)).α), c) ⟶ (𝟙 (0 : (π.obj (Top.of I)).α), d))
-lemma F_star_zero : F_star'.map ((𝟙 (0 : (π.obj (Top.of I)).α), h) : ((0 : (π.obj (Top.of I)).α), c) ⟶ ((0 : (π.obj (Top.of I)).α), d)) =
-      map_fn (@path.homotopic.prod.quotient (Top.of I) X ((0 : I), c) (0, d) ⟦path.refl 0⟧ h) (F.to_continuous_map : C(I × X, Y)) := rfl
-
-#check map_fn (@path.homotopic.prod.quotient (Top.of I) X ((0 : I), c) (0, d) ⟦path.refl 0⟧ h) (F.to_continuous_map : C(I × X, Y))
-#check map_fn h f
---map_fn h f
-
-lemma F_star_one : F_star'.map ((𝟙 (1 : (π.obj (Top.of I)).α), h) : ((1 : (π.obj (Top.of I)).α), c) ⟶ ((1 : (π.obj (Top.of I)).α), d)) =
-      map_fn (@path.homotopic.prod.quotient (Top.of I) X ((1 : I), c) (1, d) ⟦path.refl 1⟧ h) (F.to_continuous_map : C(I × X, Y)) := rfl
-
-/-
-F_star_zero : F_star'.map (𝟙 0, h) = map_fn (path.homotopic.prod.quotient ⟦path.refl 0⟧ h) F.to_continuous_map
-
-
-map_fn (path.homotopic.prod.quotient ⟦path.refl 0⟧ h) F.to_continuous_map =
-  comp (category_theory.eq_to_hom _) (comp (map_fn h f) (category_theory.eq_to_hom _))
--/
-#check F_star_one
-
-#check F_star_def
-end test
 
 section test_again
 
 local notation p₁ ` ⬝ ` p₂ := comp p₁ p₂
 parameters {x₀ x₁ : X} (h : path.homotopic.quotient x₀ x₁)
 
-#check heq.subst
-#check ⟦path.refl (0 : I)⟧
-#check coe_fn (F.to_continuous_map)
-#check @path.homotopic.prod.quotient (Top.of I) X ((0 : I), x₀) ((0 : I), x₁) ⟦path.refl 0⟧ h
-#check map_fn (@path.homotopic.prod.quotient (Top.of I) X ((0 : I), x₀) ((0 : I), x₁) ⟦path.refl 0⟧ h) F.to_continuous_map
-#check ⟦eq_to_path (F.apply_zero x₀)⟧ ⬝ (map_fn h f) ⬝ ⟦eq_to_path (F.apply_zero x₁).symm⟧ 
-#check ((F.apply_zero x₀) : F.to_continuous_map.to_fun (0, x₀) = f x₀)
-#check path.homotopic.cast (F.apply_zero x₀) (F.apply_zero x₁) (map_fn h f)
 
--- #check map_fn (path.homotopic.prod.quotient ⟦path.refl (0 : I)⟧ h)
 lemma F_star_apply_zero :
 map_fn (@path.homotopic.prod.quotient (Top.of I) X ((0 : I), x₀) ((0 : I), x₁) ⟦path.refl 0⟧ h) F.to_continuous_map 
 = path.homotopic.cast (F.apply_zero x₀) (F.apply_zero x₁) (map_fn h f) :=
@@ -245,11 +188,6 @@ def zero_to_one_path : path (0 : I) (1 : I) :=
   source' := rfl,
   target' := rfl }
 def zero_to_one : (0 : (π.obj (Top.of I)).α) ⟶ 1 := ⟦zero_to_one_path⟧
-
--- def theta' (x : (π.obj X).α) : (F_star'.obj ((0 : I), x)) ⟶ (F_star'.obj ((1 : I), x)) :=
---   F_star'.map (zero_to_one, 𝟙 _)
-
--- #check theta'
 
 include F
 theorem homotopic_maps_equivalent : category_theory.nat_trans (π.map f) (π.map g) :=
