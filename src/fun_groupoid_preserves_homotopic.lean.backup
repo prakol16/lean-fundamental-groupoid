@@ -117,11 +117,12 @@ begin
 end }
 
 end
-
 open_locale unit_interval
 section
 local attribute [instance] path.homotopic.setoid
 universe u
+
+-- #check (ulift I : Type u)
 parameters (X Y : Top.{0}) (f g : C(X, Y))
            (F : continuous_map.homotopy f g)
 

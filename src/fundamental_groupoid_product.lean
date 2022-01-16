@@ -1,166 +1,142 @@
-import category_theory.category.Groupoid
-import category_theory.groupoid
-import topology.category.Top.basic
+
 import topology.homotopy.basic
-import topology.homotopy.fundamental_groupoid
 import topology.constructions
-import category_theory.functor
+import topology.homotopy.path
+import category_theory.groupoid
 import groupoid_products
-import path_homotopy_products
-import path_homotopy_binary_products
+import topology.homotopy.fundamental_groupoid
+import topology.homotopy.product
 
 noncomputable theory
 
-/-
- - Given a family of topological spaces `X` indexed by `I`,
-   we show that π (Πᵢ Xᵢ) = Πᵢ (π Xᵢ)
- - This isomorphism is given by two homomorphisms (note that
-    homomorphisms between groupoids are functors):
-    - `pi_prod_X_to_prod_pi_X` which is a map π (Πᵢ Xᵢ) ⥤ Πᵢ (π Xᵢ)
-    - `prod_pi_X_to_pi_prod_X` which is a map Πᵢ (π Xᵢ) ⥤ π (Πᵢ Xᵢ)
- - We prove the theorems `iso₁` and `iso₂` which show that these
-   really are inverses of each others.
- -/
+namespace fundamental_groupoid
 
-namespace category_theory.functor
-section
-open category_theory
 
-universes w v u
+private abbreviation π := fundamental_groupoid_functor
+universes u
 
+section pi
+
+variables {I : Type u} {X : I → Top.{u}}
+
+/--
+The projection map Π i, X i → X i induces a map π(Π i, X i) ⟶ π(X i).
+-/
+def proj (i : I) : (π.obj (Top.of (Π i, X i))).α ⥤ (π.obj (X i)).α := π.map ⟨_, continuous_apply i⟩
+
+/-- The projection map is precisely path.homotopic.proj interpreted as a functor -/
+@[simp] lemma proj_map (i : I) (x₀ x₁ : (π.obj (Top.of (Π i, X i))).α) (p : x₀ ⟶ x₁) :
+  (proj i).map p = (@path.homotopic.proj _ _ _ _ _ i p) := rfl
+
+/--
+The map taking the pi product of a family of fundamental groupoids to the fundamental
+groupoid of the pi product. This is actually an isomorphism (see `pi_fgrpd_iso_fgrpd_pi`)
+-/
 @[simps]
-def pi' {I : Type w} {X : I → Type u} [∀i : I, category.{v} (X i)]
-        {A : Type u} [category.{v} A] (f : Π i, A ⥤ X i) :
-        A ⥤ Π i, X i := 
-{ obj := λ a i, (f i).obj a,
-  map := λ a₁ a₂ h i, (f i).map h, }
-
-@[simps]
-def diag {I : Type w} {A : Type u} [category.{v} A] : A ⥤ (Π i : I, A) := pi' (λ i, 𝟭 A)
-
-lemma pi'_diag_pi 
-        {I : Type w} {X : I → Type u} [∀i : I, category.{v} (X i)]
-        {A : Type u} [category.{v} A] {f : Π i, A ⥤ X i} :
-        pi' f = diag ⋙ functor.pi f := by obviously
-
-end
-section
-open category_theory
-universes u₁ u₂ u₃ v₁ v₂ v₃
-variables {A : Type u₁} [category.{v₁} A]
-          {B : Type u₂} [category.{v₂} B]
-          {C : Type u₃} [category.{v₃} C]
-
-@[simps]
-def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ B × C := 
-{ obj := λ a, (F.obj a, G.obj a),
-  map := λ x y f, (F.map f, G.map f),
-  }
-
-end
-
-end category_theory.functor
-
-
-section
-universe u
-abbreviation π := fundamental_groupoid.fundamental_groupoid_functor
-
-parameters {I : Type u} (X : I → Top.{u})
-
-def pi_prod_X_to_prod_pi_X_i (i : I) : (π.obj (Top.of (Π i, X i))).α 
-  ⥤ (π.obj (X i)).α :=
-  π.map (to_bundled (continuous_apply i))
-
-def pi_prod_X_to_prod_pi_X : (π.obj (Top.of (Π i, X i))).α 
-  ⥤ Π i, (π.obj (X i)).α := (category_theory.functor.pi' pi_prod_X_to_prod_pi_X_i)
-
-def prod_pi_X_to_pi_prod_X : (Π i : I, (π.obj (X i)).α)
-        ⥤ (π.obj (Top.of (Π i, X i))).α := 
+def pi_fgrpd_to_fgrpd_pi :
+  (Π i, (π.obj (X i)).α) ⥤ (π.obj (Top.of (Π i, X i))).α :=
 { obj := λ g, g,
-  map := λ v₁ v₂ p, path.homotopic.path_prod.quotient p,
-  map_id' := path.homotopic.id_product_is_id.quotient,
-  map_comp' := λ x y z f g, (path.homotopic.hompath_trans_commutes_with_product f g).symm }
+  map := λ v₁ v₂ p, path.homotopic.pi p,
+  map_id' :=
+  begin
+    intro x,
+    change path.homotopic.pi (λ i, 𝟙 (x i)) = _,
+    simp only [id_eq_path_refl, path.homotopic.pi_lift],
+    refl,
+  end,
+  map_comp' := λ x y z f g, (path.homotopic.comp_pi_eq_pi_comp f g).symm, }
 
-@[simp]
-lemma def_pi_prod_X_to_prod_pi_X {x y : (π.obj (Top.of (Π i, X i))).α} {f : x ⟶ y} 
-  : pi_prod_X_to_prod_pi_X.map f = λ i : I, path.homotopic.path_proj.quotient i f := rfl
-
-@[simp]
-lemma def_prod_pi_X_to_pi_prod_X {x y : Π i : I, (π.obj (X i)).α}
-           {f : x ⟶ y} : prod_pi_X_to_pi_prod_X.map f = path.homotopic.path_prod.quotient f := rfl 
-
-theorem iso₁ : pi_prod_X_to_prod_pi_X ⋙ prod_pi_X_to_pi_prod_X = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext; intros,
-  { simp, }, { refl, },
-end
-
-theorem iso₂ : prod_pi_X_to_pi_prod_X ⋙ pi_prod_X_to_prod_pi_X = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext; intros,
-  { simp, }, { refl, },
-end
-
-section
-parameters {α β : Top.{u}}
-
-def pi_proj_left : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α :=
-  π.map (⟨_, continuous_fst⟩)
-
-def pi_proj_right : (π.obj (Top.of (α × β))).α ⥤ (π.obj β).α :=
-  π.map (⟨_, continuous_snd⟩)
-
-def pi_proj : (π.obj (Top.of (α × β))).α ⥤ (π.obj α).α × (π.obj β).α :=
-  pi_proj_left.prod' pi_proj_right
-
+/--
+Shows `pi_fgrpd_to_fgrpd_pi` is an isomorphism, whose inverse is precisely the pi product
+of the induced projections. This shows that `fundamental_groupoid_functor` preserves products.
+-/
 @[simps]
-def prod_to_pi : (π.obj α).α × (π.obj β).α ⥤ (π.obj (Top.of (α × β))).α :=
-{ obj := λ p, p,
-  map := λ X Y (p : X ⟶ Y), path.homotopic.prod.quotient p.1 p.2,
-  map_id' := λ x, path.homotopic.id_prod.quotient x.1 x.2,
-  map_comp' := λ x y z f g, path.homotopic.hcomp_comm_prod f.1 f.2 g.1 g.2 }
+def pi_fgrpd_iso_fgrpd_pi :
+  category_theory.Groupoid.of (Π i : I, (π.obj (X i)).α) ≅ (π.obj (Top.of (Π i, X i))) :=
+{ hom := pi_fgrpd_to_fgrpd_pi,
+  inv := category_theory.functor.pi' proj,
+  hom_inv_id' :=
+  begin
+    change pi_fgrpd_to_fgrpd_pi ⋙ (category_theory.functor.pi' proj) = 𝟭 _,
+    apply category_theory.functor.ext; intros,
+    { ext, simp, }, { refl, },
+  end,
+  inv_hom_id' :=
+  begin
+    change (category_theory.functor.pi' proj) ⋙ pi_fgrpd_to_fgrpd_pi = 𝟭 _,
+    apply category_theory.functor.ext; intros,
+    { suffices : path.homotopic.pi ((category_theory.functor.pi' proj).map f) = f, { simpa, },
+      change (category_theory.functor.pi' proj).map f
+        with λ i, (category_theory.functor.pi' proj).map f i,
+      simp, }, { refl, }
+  end }
 
-section test
-variables {x y : (π.obj (Top.of (α × β))).α} (f : x ⟶ y)
-@[simp] lemma def_pi_proj_left  :
-  pi_proj_left.map f = path.homotopic.proj.left.quotient f := rfl
+end pi
 
-@[simp] lemma def_pi_proj_right :
-  pi_proj_right.map f = path.homotopic.proj.right.quotient f := rfl
+section prod
 
-@[simp] lemma def_pi_proj_to_left :
-  (pi_proj.map f).1 = pi_proj_left.map f := rfl
+variables {A B : Top.{u}}
 
-@[simp] lemma def_pi_proj_to_right :
-  (pi_proj.map f).2 = pi_proj_right.map f := rfl
+/-- The induced map of the left projection map X × Y → X -/
+def proj_left : (π.obj (Top.of (A × B))).α ⥤ (π.obj A).α := π.map ⟨_, continuous_fst⟩
 
-@[simp] lemma def_pi_proj_obj : pi_proj.obj x = x := by { ext; refl, }
+/-- The induced map of the right projection map X × Y → Y -/
+def proj_right : (π.obj (Top.of (A × B))).α ⥤ (π.obj B).α := π.map ⟨_, continuous_snd⟩
 
-end test
+@[simp] lemma proj_left_map (x₀ x₁ : (π.obj (Top.of (A × B))).α) (p : x₀ ⟶ x₁) :
+  proj_left.map p = path.homotopic.proj_left p := rfl
 
-theorem iso₃ : pi_proj ⋙ prod_to_pi = 𝟭 _ :=
-begin
-  apply category_theory.functor.hext, { simp, },
-  intros x y f,
-  simp only [category_theory.functor.id_map,
-    def_pi_proj_left,
-    def_pi_proj_to_left,
-    category_theory.functor.comp_map,
-    def_pi_proj_to_right,
-    prod_to_pi_map,
-    def_pi_proj_right],
-  convert heq_iff_eq.mpr (path.homotopic.prod_proj.quotient' f);
-   simp,
-end
+@[simp] lemma proj_right_map (x₀ x₁ : (π.obj (Top.of (A × B))).α) (p : x₀ ⟶ x₁) :
+  proj_right.map p = path.homotopic.proj_right p := rfl
 
-theorem iso₄ : prod_to_pi ⋙ pi_proj = 𝟭 _ :=
-begin
-  apply category_theory.functor.hext, { simp, },
-  intros x y f,
-  simp [prod.ext_iff],
-end
 
-end
+/--
+The map taking the product of two fundamental groupoids to the fundamental groupoid of the product
+of the two topological spaces. This is in fact an isomorphism (see `prod_fgrpd_iso_fgrpd_prod`).
+-/
+@[simps]
+def prod_fgrpd_to_fgrpd_prod : (π.obj A).α × (π.obj B).α ⥤ (π.obj (Top.of (A × B))).α :=
+{ obj := λ g, g,
+  map := λ x y p, match x, y, p with
+    | (x₀, x₁), (y₀, y₁), (p₀, p₁) := path.homotopic.prod p₀ p₁
+  end,
+  map_id' :=
+  begin
+    rintro ⟨x₀, x₁⟩,
+    simp only [category_theory.prod_id, id_eq_path_refl],
+    unfold_aux, rw path.homotopic.prod_lift, refl,
+  end,
+  map_comp' := λ x y z f g, match x, y, z, f, g with
+    | (x₀, x₁), (y₀, y₁), (z₀, z₁), (f₀, f₁), (g₀, g₁) :=
+    (path.homotopic.comp_prod_eq_prod_comp f₀ f₁ g₀ g₁).symm
+  end }
 
-end
+/--
+Shows `prod_fgrpd_to_fgrpd_prod` is an isomorphism, whose inverse is precisely the product
+of the induced left and right projections.
+-/
+@[simps]
+def prod_fgrpd_iso_fgrpd_prod :
+  category_theory.Groupoid.of ((π.obj A).α × (π.obj B).α) ≅ (π.obj (Top.of (A × B))) :=
+{ hom := prod_fgrpd_to_fgrpd_prod,
+  inv := proj_left.prod' proj_right,
+  hom_inv_id' :=
+  begin
+    change prod_fgrpd_to_fgrpd_prod ⋙ (proj_left.prod' proj_right) = 𝟭 _,
+    apply category_theory.functor.hext, { intros, ext; simp; refl, },
+    rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
+    have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
+    simpa,
+  end,
+  inv_hom_id' :=
+  begin
+    change (proj_left.prod' proj_right) ⋙ prod_fgrpd_to_fgrpd_prod = 𝟭 _,
+    apply category_theory.functor.hext, { intros, ext; simp; refl, },
+    rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ f,
+    have := path.homotopic.prod_proj_left_proj_right f,
+    simpa,
+  end }
+
+end prod
+
+end fundamental_groupoid
