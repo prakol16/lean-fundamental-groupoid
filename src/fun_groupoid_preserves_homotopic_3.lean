@@ -1,4 +1,6 @@
 import fundamental_groupoid_product
+import topology.homotopy.equiv
+import category_theory.equivalence
 
 noncomputable theory
 
@@ -13,6 +15,31 @@ def to_path (x : X) : path (f x) (g x) :=
   target' := H.apply_one x, }
 
 end continuous_map.homotopy
+
+namespace category_theory.groupoid
+open category_theory
+section
+universe u
+variables {G H I : Groupoid.{u u}} (f : G.α ⥤ H.α) (g : H.α ⥤ I.α)
+
+
+lemma grpd_id_eq : (𝟭 G.α) = (𝟙 G) := rfl
+
+@[reducible]
+def func_to_hom : G ⟶ H := f
+
+lemma grpd_comp_eq : f ⋙ g = (func_to_hom f : G ⟶ H) ≫ (g : H ⟶ I) := rfl
+
+end
+end category_theory.groupoid
+
+namespace continuous_map
+universe u
+variables {G : Top.{u}}
+
+lemma top_id_eq : (continuous_map.id : C(G, G)) = (𝟙 G) := rfl
+
+end continuous_map
 
 namespace fundamental_groupoid
 
@@ -46,11 +73,13 @@ end fundamental_groupoid
 section
 open fundamental_groupoid
 private abbreviation π := fundamental_groupoid_functor
-
+universes u v
 open_locale unit_interval
 local attribute [instance] path.homotopic.setoid
-universes u v
-section
+
+section htop_maps_induce_iso_funcs
+
+section casts
 
 lemma path_cast_left {X : Top} {x₀ x₁ x₀' : X} (p : path x₀ x₁) (hx₀ : x₀ = x₀') :
   (category_theory.eq_to_hom hx₀.symm : (from_top x₀') ⟶ x₀) ≫ ⟦p⟧ = ⟦p.cast hx₀.symm rfl⟧ :=
@@ -77,7 +106,7 @@ begin
   congr, ext, simp only [path.map_coe, hfg, function.comp_app, path.cast_coe],
 end
 
-end
+end casts
 
 parameters {X : Top.{u}} {Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
 variables {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁)
@@ -139,4 +168,29 @@ def homotopic_maps_equivalent : category_theory.nat_trans (π.map f) (π.map g) 
 { app := λ x, ⟦H.to_path x⟧,
   naturality' := by { intros x y p, rw [(eq_diag p).1, (eq_diag p).2],  } }
 
+include H
+lemma homotopic_maps_isomorphic : (π.map f) ≅ (π.map g) :=
+begin
+  refine category_theory.as_iso (_ : (π.map f) ⟶ (π.map g)),
+  { exact homotopic_maps_equivalent, },
+  apply category_theory.nat_iso.is_iso_of_is_iso_app,
+end
+
+end htop_maps_induce_iso_funcs
+
+section
+
+open_locale continuous_map
+variables (X Y : Top.{u})
+
+
+theorem equivalent_fundamental_groupoids (hequiv : X ≃ₕ Y) : (π.obj X).α ≌ (π.obj Y).α :=
+begin
+  apply category_theory.equivalence.mk (π.map hequiv.to_fun : (π.obj X) ⟶ (π.obj Y)) (π.map hequiv.inv_fun);
+  simp only [category_theory.groupoid.grpd_comp_eq, ← category_theory.functor.map_comp, category_theory.groupoid.grpd_id_eq],
+  { convert (nonempty.map homotopic_maps_isomorphic hequiv.left_inv).some.symm, simp [continuous_map.top_id_eq], },
+  { convert (nonempty.map homotopic_maps_isomorphic hequiv.right_inv).some, simp [continuous_map.top_id_eq], }
+end
+
+end
 end
